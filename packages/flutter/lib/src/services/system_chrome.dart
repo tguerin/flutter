@@ -694,6 +694,9 @@ abstract final class SystemChrome {
   ///
   /// To imperatively set the style of the system overlays, use [SystemChrome.setSystemUIOverlayStyle].
   ///
+  /// In case the properties of the overlays have been changed outside of the flutter app,
+  /// you can use the [force] parameter to force the style to be set.
+  ///
   /// {@tool snippet}
   /// The following example uses SystemChrome to set the status bar icon brightness based on system brightness.
   /// ```dart
@@ -712,13 +715,13 @@ abstract final class SystemChrome {
   ///    the style of the system overlays.
   ///  * [AnnotatedRegion], the widget used to place a `SystemUiOverlayStyle` into
   ///    the layer tree.
-  static void setSystemUIOverlayStyle(SystemUiOverlayStyle style) {
+  static void setSystemUIOverlayStyle(SystemUiOverlayStyle style, {bool force = false}) {
     if (_pendingStyle != null) {
       // The microtask has already been queued; just update the pending value.
       _pendingStyle = style;
       return;
     }
-    if (style == _latestStyle) {
+    if (style == _latestStyle && !force) {
       // Trivial success: no microtask has been queued and the given style is
       // already in effect, so no need to queue a microtask.
       return;
