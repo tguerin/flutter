@@ -532,6 +532,7 @@ mixin WidgetsBinding
     _debugShowWidgetInspectorOverrideNotifierObject = null;
     _debugWidgetInspectorSelectionOnTapEnabledNotifierObject?.dispose();
     _debugWidgetInspectorSelectionOnTapEnabledNotifierObject = null;
+    _rootElement = null;
   }
 
   void _debugAddStackFilters() {

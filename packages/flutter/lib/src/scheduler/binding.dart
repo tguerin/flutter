@@ -401,6 +401,7 @@ mixin SchedulerBinding on BindingBase {
   void resetInternalState() {
     _lifecycleState = null;
     _framesEnabled = true;
+    _forceFramesEnabled = false;
   }
 
   /// Called when the application lifecycle state changes.
@@ -870,10 +871,52 @@ mixin SchedulerBinding on BindingBase {
 
   /// Whether frames are currently being scheduled when [scheduleFrame] is called.
   ///
-  /// This value depends on the value of the [lifecycleState].
-  bool get framesEnabled => _framesEnabled;
+  /// This value depends on the value of the [lifecycleState], unless overridden
+  /// by [forceFramesEnabled]. However, frames are never enabled when the app
+  /// is detached, regardless of the force setting.
+  bool get framesEnabled {
+    // Never enable frames when detached, even if forced
+    if (_lifecycleState == AppLifecycleState.detached) {
+      return false;
+    }
+    return _forceFramesEnabled || _framesEnabled;
+  }
 
   bool _framesEnabled = true;
+
+  /// Forces frames to remain enabled even when the app is hidden or paused.
+  ///
+  /// When set to `true`, frames will continue to be scheduled even when the app
+  /// is in a hidden or paused state. When set to `false` (the default), the
+  /// normal lifecycle-based behavior is used where frames are disabled when
+  /// the app is hidden or paused.
+  ///
+  /// This is useful for applications that need to continue rendering frames even
+  /// when the app is not visible, for maintaining animations.
+  ///
+  /// Note that frames are never enabled when the app is detached, regardless
+  /// of this setting, as there is no point in rendering when the app is being
+  /// shut down.
+  ///
+  /// Also note that forcing frames to be enabled when the app is hidden or paused
+  /// may have battery and performance implications.
+  bool get forceFramesEnabled => _forceFramesEnabled;
+  bool _forceFramesEnabled = false;
+
+  /// Sets whether to force frames to remain enabled regardless of lifecycle state.
+  ///
+  /// See [forceFramesEnabled] for details.
+  set forceFramesEnabled(bool value) {
+    if (_forceFramesEnabled == value) {
+      return;
+    }
+    final bool oldFramesEnabled = framesEnabled;
+    _forceFramesEnabled = value;
+    if (!oldFramesEnabled && framesEnabled) {
+      scheduleFrame();
+    }
+  }
+
   void _setFramesEnabledState(bool enabled) {
     if (_framesEnabled == enabled) {
       return;
